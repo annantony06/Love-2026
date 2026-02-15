@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LOVE 2026 - The Complete Story</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; background: #050505; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Segoe UI', sans-serif; }
+        
+        canvas { 
+            position: absolute; 
+            filter: drop-shadow(0 0 15px rgba(255, 0, 0, 0.7)); 
+        }
+
+        .message { 
+            position: absolute;
+            z-index: 10; 
+            text-align: center; 
+            pointer-events: none; 
+            width: 90%;
+            transform: translateY(-50px);
+        }
+        
+        h1 { 
+            font-family: 'Great Vibes', cursive; 
+            font-size: 4.8rem; 
+            margin: 0;
+            color: #ff1a1a; 
+            font-weight: normal;
+        }
+        
+        #quote { 
+            font-family: 'Great Vibes', cursive;
+            font-size: 1.8rem; 
+            color: #ffd700; 
+            margin-top: 10px;
+            text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+            transition: opacity 1.5s ease-in-out;
+            opacity: 0;
+            min-height: 2.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="message">
+        <h1>Love</h1>
+        <p id="quote"></p>
+    </div>
+    <canvas id="heartCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('heartCanvas');
+    const ctx = canvas.getContext('2d');
+    const quoteElement = document.getElementById('quote');
+    
+    const quotes = [
+        "“In the garden of time, you are my eternal bloom.”",
+        "“In every lifetime, I'd find my way back to you.”",
+        "“In the world of echoes, you are my only truth.”",
+        "“You are the poem I never knew how to write.”"
+    ];
+
+    let quoteIndex = 0;
+    let started = false;
+
+    function transitionQuote() {
+        quoteElement.style.opacity = 0;
+        setTimeout(() => {
+            quoteElement.innerHTML = quotes[quoteIndex];
+            quoteElement.style.opacity = 1;
+            quoteIndex = (quoteIndex + 1) % quotes.length;
+        }, 1500);
+    }
+
+    // WAIT 6 seconds (Plain Heart) then start the thoughts
+    setTimeout(() => {
+        transitionQuote();
+        setInterval(transitionQuote, 5500);
+    }, 6000);
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    let t = 0;
+    const points = [];
+    const sparkles = [];
+
+    class GoldenGlitter {
+        constructor(x, y) {
+            this.x = x; this.y = y;
+            this.size = Math.random() * 1.8;
+            this.alpha = Math.random() * 0.8 + 0.2;
+            this.vx = (Math.random() - 0.5) * 0.3;
+            this.vy = (Math.random() - 0.5) * 0.3;
+        }
+        draw() {
+            ctx.fillStyle = `rgba(255, 215, 0, ${this.alpha})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.alpha -= 0.005;
+        }
+    }
+
+    function draw() {
+        ctx.fillStyle = 'rgba(5, 5, 5, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2.2; 
+        const scale = Math.min(canvas.width / 50, 16); 
+
+        const xVal = 16 * Math.pow(Math.sin(t), 3);
+        const yVal = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+
+        const posX = cx + xVal * scale;
+        const posY = cy + yVal * scale;
+        points.push({x: posX, y: posY});
+
+        if (Math.random() > 0.15) sparkles.push(new GoldenGlitter(posX, posY));
+
+        if (Math.random() > 0.1) {
+            let randT = Math.random() * Math.PI * 2;
+            let innerScale = Math.random() * 0.98; 
+            let sparkX = 16 * Math.pow(Math.sin(randT), 3);
+            let sparkY = -(13 * Math.cos(randT) - 5 * Math.cos(2 * randT) - 2 * Math.cos(3 * randT) - Math.cos(4 * randT));
+            sparkles.push(new GoldenGlitter(cx + sparkX * scale * innerScale, cy + sparkY * scale * innerScale));
+        }
+
+        ctx.strokeStyle = "#ff0000"; 
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#ff0000";
+        
+        ctx.beginPath();
+        if (points.length > 1) {
+            ctx.moveTo(points[points.length-2].x, points[points.length-2].y);
+            ctx.lineTo(posX, posY);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        for (let i = 0; i < sparkles.length; i++) {
+            sparkles[i].update();
+            sparkles[i].draw();
+            if (sparkles[i].alpha <= 0) { sparkles.splice(i, 1); i--; }
+        }
+
+        t += 0.04;
+        requestAnimationFrame(draw);
+    }
+    draw();
+</script>
+</body>
+</html>
